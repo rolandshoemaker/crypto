@@ -159,6 +159,31 @@ func TestOCSPRequest(t *testing.T) {
 	if got := decodedRequest.SerialNumber; got.Cmp(cert.SerialNumber) != 0 {
 		t.Errorf("request.SerialNumber: got %x, want %x", got, cert.SerialNumber)
 	}
+
+	marshaledRequest, err := decodedRequest.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	invertedRequest, err := ParseRequest(marshaledRequest)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if invertedRequest.HashAlgorithm != crypto.SHA1 {
+		t.Errorf("request.HashAlgorithm: got %v, want %v", invertedRequest.HashAlgorithm, crypto.SHA1)
+	}
+	if got := invertedRequest.IssuerKeyHash; !bytes.Equal(got, issuerKeyHash) {
+		t.Errorf("request.IssuerKeyHash: got %x, want %x", got, issuerKeyHash)
+	}
+
+	if got := invertedRequest.IssuerNameHash; !bytes.Equal(got, issuerNameHash) {
+		t.Errorf("request.IssuerKeyHash: got %x, want %x", got, issuerNameHash)
+	}
+
+	if got := invertedRequest.SerialNumber; got.Cmp(cert.SerialNumber) != 0 {
+		t.Errorf("request.SerialNumber: got %x, want %x", got, cert.SerialNumber)
+	}
 }
 
 func TestOCSPResponse(t *testing.T) {
